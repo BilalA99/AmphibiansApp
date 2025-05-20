@@ -1,20 +1,59 @@
 package com.example.amphibiansapp.ui
 
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.amphibiansapp.model.Amphibian
 
 @Composable
-fun AmphibiansScreen(amphibians: List<Amphibian>) {
-    LazyColumn {
-        items(amphibians) { amphibian: Amphibian ->
-            AmphibianCard(amphibian = amphibian)
+fun AmphibiansScreen(
+    modifier: Modifier = Modifier,
+    viewModel: AmphibianViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    
+    when (uiState) {
+        is AmphibianUiState.Loading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        is AmphibianUiState.Success -> {
+            LazyColumn(
+                modifier = modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items((uiState as AmphibianUiState.Success).amphibians) { amphibian ->
+                    AmphibianItem(amphibian = amphibian)
+                }
+            }
+        }
+        is AmphibianUiState.Error -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = (uiState as AmphibianUiState.Error).message,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }
-
 
 @Composable
 fun amphibiansScreenStatic() {
